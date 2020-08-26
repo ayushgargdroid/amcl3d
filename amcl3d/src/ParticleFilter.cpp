@@ -136,7 +136,7 @@ void ParticleFilter::update(const Grid3d& grid3d, const pcl::PointCloud<pcl::Poi
     /*  Check the particle is into the map */
     if (!grid3d.isIntoMap(tx, ty, tz))
     {
-      // std::cout << "Not into map: " << grid3d_.isIntoMap(tx, ty, tz-1.0) << std::endl;
+      // std::cout << "Not into map: " << grid3d.isIntoMap(tx, ty, tz) << std::endl;
       p_[i].w = 0;
       continue;
     }
@@ -154,6 +154,7 @@ void ParticleFilter::update(const Grid3d& grid3d, const pcl::PointCloud<pcl::Poi
   clock_t end_for1 = clock();
   double elapsed_secs = double(end_for1 - begin_for1) / CLOCKS_PER_SEC;
   ROS_DEBUG("Update time 1: [%lf] sec", elapsed_secs);
+  ROS_INFO("Total weight %f %f", wtp, wtr);
 
   /*  Normalize all weights */
   float wt = 0;

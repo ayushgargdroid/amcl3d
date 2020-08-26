@@ -18,6 +18,7 @@
 #include "Node.h"
 
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/passthrough.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <visualization_msgs/Marker.h>
@@ -130,6 +131,11 @@ void Node::pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg)
   clock_t begin_filter = clock();
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_src(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg(*msg, *cloud_src);
+  pcl::PassThrough<pcl::PointXYZ> passThroughZ;
+  passThroughZ.setFilterFieldName("z");
+  passThroughZ.setFilterLimits(-1.0, 10.0);
+  passThroughZ.setInputCloud(cloud_src);
+  passThroughZ.filter(*cloud_src);
   pcl::VoxelGrid<pcl::PointXYZ> sor;
   sor.setInputCloud(cloud_src);
   sor.setLeafSize(parameters_.voxel_size_, parameters_.voxel_size_, parameters_.voxel_size_);
@@ -230,7 +236,7 @@ void Node::odomCallback(const geometry_msgs::TransformStampedConstPtr& msg)
     lastodom_2_world_tf_ = initodom_2_world_tf_;
   }
 
-  static bool has_takenoff = false;
+  static bool has_takenoff = true;
   if (!has_takenoff)
   {
     ROS_WARN("Not <<taken off>> yet");
@@ -261,22 +267,22 @@ void Node::odomCallback(const geometry_msgs::TransformStampedConstPtr& msg)
     if (fabs(mean_p_.x - lastmean_p_.x) > 1.)
     {
       ROS_WARN("AMCL Jump detected in X");
-      amcl_out_ = true;
+      // amcl_out_ = true;
     }
     if (fabs(mean_p_.y - lastmean_p_.y) > 1.)
     {
       ROS_WARN("AMCL Jump detected in Y");
-      amcl_out_ = true;
+      // amcl_out_ = true;
     }
     if (fabs(mean_p_.z - lastmean_p_.z) > 1.)
     {
       ROS_WARN("AMCL Jump detected in Z");
-      amcl_out_ = true;
+      // amcl_out_ = true;
     }
     if (fabs(mean_p_.a - lastmean_p_.a) > 1.)
     {
       ROS_WARN("AMCL Jump detected in Yaw");
-      amcl_out_ = true;
+      // amcl_out_ = true;
     }
 
     if (!amcl_out_)
@@ -288,6 +294,7 @@ void Node::odomCallback(const geometry_msgs::TransformStampedConstPtr& msg)
       base_2_world_tf.setRotation(q);
 
       base_2_world_tf = base_2_world_tf * lastupdatebase_2_odom_tf_.inverse() * base_2_odom_tf_;
+      tf_br.sendTransform(tf::StampedTransform(base_2_world_tf, ros::Time::now(), parameters_.global_frame_id_, "amcl"));
 
       lastmean_p_ = mean_p_;
 

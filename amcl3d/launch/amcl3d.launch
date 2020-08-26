@@ -10,24 +10,27 @@
   <arg name="alpha"/>
   <arg name="take_off_height"/>
 
+  <param name="/use_sim_time" type="bool" value="true" />
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find amcl3d)/rviz/my_amcl3d.rviz" />
+
   <node pkg="amcl3d" type="amcl3d_node" name="amcl3d_node" output="screen">
 
     <!-- Topics and frames -->
 
     <!-- To set the topic which has information about the point cloud from the robot view -->
-    <remap from="laser_sensor" to="/lidar_pointcloud"/>
+    <remap from="laser_sensor" to="/waymo_sensor/lidar/cloud"/>
 
     <!-- To set the topic which has information about the robot odometry -->
-    <remap from="odometry" to="/vicon_odometry"/>
+    <remap from="odometry" to="/odom_data"/>
 
     <!-- To set the topic which has information about the sensor-range sensors -->
     <remap from="radiorange_sensor" to="/nanotron_node/range"/>
 
     <!-- To set the name of the robot TF -->
-    <param name="base_frame_id" value="base_link"/>
+    <param name="base_frame_id" value="waymo_sensor/lidar_link"/>
 
     <!-- To set the name of the flight origin of the robot TF -->
-    <param name="odom_frame_id" value="odom"/>
+    <param name="odom_frame_id" value="odom_combined"/>
 
     <!-- To set the name of the test-bed origin TF -->
     <param name="global_frame_id" value="world"/>
@@ -41,15 +44,19 @@
     <param name="set_initial_pose" value="true"/>
 
     <!-- To set the position in X-axis -->
+    <!--<param name="init_x" value="86.47920506"/>-->
     <param name="init_x" value="$(arg init_x)"/>
 
     <!-- To set the position in Y-axis -->
+    <!--<param name="init_y" value="58.502888"/>-->
     <param name="init_y" value="$(arg init_y)"/>
 
     <!-- To set the position in Z-axis -->
+    <!--<param name="init_z" value="0.2123"/>-->
     <param name="init_z" value="$(arg init_z)"/>
 
     <!-- To set the YAW angle -->
+    <!--<param name="init_a" value="-1.361"/>-->
     <param name="init_a" value="$(arg init_a)"/>
 
     <!-- To set thresholds of X-axis in initial pose -->
@@ -93,13 +100,13 @@
     <param name="odom_x_mod" value="0.1"/>
 
     <!-- To set the thresholds of Y-axis where the filter can predict the particles -->
-    <param name="odom_y_mod" value="0.1"/>
+    <param name="odom_y_mod" value="0.2"/>
 
     <!-- To set the thresholds of Z-axis where the filter can predict the particles -->
     <param name="odom_z_mod" value="0.01"/>
 
     <!-- To set the thresholds of YAW angle where the filter can predict the particles -->
-    <param name="odom_a_mod" value="0.3"/>
+    <param name="odom_a_mod" value="1.0"/>
 
     <!-- To set resampling control -->
     <param name="resample_interval" value="0"/>
@@ -108,10 +115,10 @@
     <param name="update_rate" value="100"/>
 
     <!-- To set the threshold for the update in the distance -->
-    <param name="d_th" value="0.05"/>
+    <param name="d_th" value="0.01"/>
 
     <!-- To set the threshold for the update in yaw angle -->
-    <param name="a_th" value="0.03"/>
+    <param name="a_th" value="0.01"/>
 
     <!-- To set the threshold for UAV takeoff -->
     <param name="take_off_height" value="$(arg take_off_height)"/>

@@ -16,6 +16,8 @@ find_package(catkin REQUIRED
     rosinrange_msg
 )
 
+find_package(PCL REQUIRED)
+
 ###################################
 ## CATKIN specific configuration ##
 ###################################
@@ -39,7 +41,18 @@ find_package(GMock)
 ## Build ##
 ###########
 
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+)
+
+add_library(kdtree_nano_pcl_wrapper src/KdTreeNanoSearchPclWrapper.cpp)
+target_link_libraries(kdtree_nano_pcl_wrapper
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${libnabo_LIBRARIES}
+)
 
 add_library(${PROJECT_NAME}
   src/Grid3d.cpp
@@ -49,7 +62,7 @@ add_library(${PROJECT_NAME}
   src/PointCloudTools.cpp
   src/PointCloudTools.h)
 add_dependencies(${PROJECT_NAME}      ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} kdtree_nano_pcl_wrapper)
 
 add_executable(${PROJECT_NAME}_node
   src/main.cpp
@@ -59,6 +72,12 @@ add_executable(${PROJECT_NAME}_node
   src/Parameters.h)
 add_dependencies(${PROJECT_NAME}_node       ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node  ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+add_executable(${PROJECT_NAME}_test_node
+  src/test.cpp)
+add_dependencies(${PROJECT_NAME}_test_node  ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_test_node  ${catkin_LIBRARIES} ${PROJECT_NAME} kdtree_nano_pcl_wrapper)
+
 
 #############
 ## Testing ##

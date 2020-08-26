@@ -18,6 +18,7 @@
 #include <boost/filesystem.hpp>
 
 #include <pcl/kdtree/kdtree_flann.h>
+#include <amcl3d/KdTreeNanoPclWrapper.h>
 
 #include "PointCloudTools.h"
 
@@ -97,6 +98,9 @@ Grid3dInfo::Ptr computeGrid(PointCloudInfo::Ptr pc_info, const double sensor_dev
   grid_info->size_y = static_cast<uint32_t>(ceil(octo_size_y / pc_info->octo_resol));
   grid_info->size_z = static_cast<uint32_t>(ceil(octo_size_z / pc_info->octo_resol));
 
+  ROS_INFO("Size x:%d y:%d z:%d", grid_info->size_x, grid_info->size_y, grid_info->size_z);
+  ROS_INFO("Point cloud side: %ld", pc_info->cloud->points.size());
+
   grid_info->step_y = grid_info->size_x;
   grid_info->step_z = grid_info->size_x * grid_info->size_y;
 
@@ -106,6 +110,9 @@ Grid3dInfo::Ptr computeGrid(PointCloudInfo::Ptr pc_info, const double sensor_dev
   /* Setup kdtree */
   pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
   kdtree.setInputCloud(pc_info->cloud);
+
+  pcl::KdTreeNano<pcl::PointXYZ> treeNano;
+  treeNano.setInputCloud(pc_info->cloud);
 
   /* Compute the distance to the closest point of the grid */
   const float gauss_const1 = static_cast<float>(1. / (grid_info->sensor_dev * sqrt(2 * M_PI)));
@@ -127,19 +134,28 @@ Grid3dInfo::Ptr computeGrid(PointCloudInfo::Ptr pc_info, const double sensor_dev
 
         index = ix + iy * grid_info->step_y + iz * grid_info->step_z;
 
-        if (kdtree.nearestKSearch(search_point, 1, point_idx_nkn_search, point_nkn_squared_distance) > 0)
+        if(iz%10==0 && ix==0 && iy==0){
+          ROS_INFO("Asked for point: ix:%d iy:%d iz:%d indx:%d", ix, iy, iz, index);
+          ROS_INFO("Query: %f %f %f", search_point.x, search_point.y, search_point.z);
+        }
+        if (treeNano.nearestKSearch(search_point, 1, point_idx_nkn_search, point_nkn_squared_distance) > 0)
         {
           dist = point_nkn_squared_distance[0];
           grid_info->grid[index].dist = dist;
           grid_info->grid[index].prob = gauss_const1 * expf(-dist * dist * gauss_const2);
+          // ROS_INFO("F: ix:%f iy:%f iz:%f indx:%d dist:%f prob:%f", search_point.x, search_point.y, search_point.z, index, dist, grid_info->grid[index].prob);
         }
         else
         {
           grid_info->grid[index].dist = -1.0;
           grid_info->grid[index].prob = 0.0;
+          // ROS_INFO("N: ix:%d iy:%d iz:%d indx:%d dist:%f prob:%f", ix, iy, iz, index, grid_info->grid[index].dist, grid_info->grid[index].prob);
         }
+        // ROS_INFO("Exit x");
       }
+      // ROS_INFO("Exit y");
     }
+    // ROS_INFO("Exit z");
   }
 
   return grid_info;

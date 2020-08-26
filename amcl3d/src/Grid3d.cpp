@@ -186,6 +186,7 @@ float Grid3d::computeCloudWeight(const pcl::PointCloud<pcl::PointXYZ>::Ptr& clou
     }
   }
 
+  // ROS_INFO("Pf x %f y %f z %f weight %f", offset_x, offset_y, offset_z, weight/n);
   return (n <= 10) ? 0 : weight / n;
 }
 

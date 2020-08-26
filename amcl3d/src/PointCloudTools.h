@@ -20,6 +20,7 @@
 #include <octomap/OcTree.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <ros/ros.h>
 
 namespace amcl3d
 {
